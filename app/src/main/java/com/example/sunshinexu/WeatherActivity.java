@@ -1,5 +1,6 @@
 package com.example.sunshinexu;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.sunshinexu.gson.Forecast;
 import com.example.sunshinexu.gson.Weather;
+import com.example.sunshinexu.service.AutoUpdateService;
 import com.example.sunshinexu.util.Utility;
 import com.example.sunshinexu.util.httpUtil;
 
@@ -186,6 +188,8 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     private void showWeatherInfo(Weather weather) {
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startActivity(intent);
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.upadateTime;
         String degree = weather.now.temperature + "°C";
