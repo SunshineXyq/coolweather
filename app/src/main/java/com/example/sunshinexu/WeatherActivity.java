@@ -4,11 +4,16 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -41,11 +46,15 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView car_wash_text;
     private TextView sport_text;
     private ImageView iv_bing_pic;
+    private String weatherId;
+    public SwipeRefreshLayout swipe_refresh;
+    public DrawerLayout drawer_layout;
+    private Button nav_button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (Build.VERSION.SDK_INT >= 21) {
+        if (Build.VERSION.SDK_INT >= 21) {     //版本号设置
             View decorView = getWindow().getDecorView();
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
@@ -66,12 +75,25 @@ public class WeatherActivity extends AppCompatActivity {
         }
         if (weatherString != null) {
             Weather weather = Utility.handWeatherResponse(weatherString);
+            weatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         } else {
-            String weatherId = getIntent().getStringExtra("weatherId");
+            weatherId = getIntent().getStringExtra("weatherId");
             weatherLayout.setVisibility(View.INVISIBLE);
             requestWeather(weatherId);
         }
+        swipe_refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                requestWeather(weatherId);
+            }
+        });
+        nav_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawer_layout.openDrawer(GravityCompat.START);
+            }
+        });
     }
 
     private void loadBingPic() {
@@ -104,7 +126,7 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    private void requestWeather(String weatherId) {
+    public void requestWeather(String weatherId) {
         String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId
                 + "&key=52708e50e9364dc8816e1b8e3822aef3";
         Log.d("url",weatherUrl);
@@ -115,6 +137,7 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                        swipe_refresh.setRefreshing(false);
                     }
                 });
             }
@@ -135,10 +158,12 @@ public class WeatherActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
                         }
+                        swipe_refresh.setRefreshing(false);
                     }
                 });
             }
         });
+        loadBingPic();
     }
 
     private void initViews() {
@@ -154,6 +179,10 @@ public class WeatherActivity extends AppCompatActivity {
         car_wash_text = findViewById(R.id.car_wash_text);
         sport_text = findViewById(R.id.sport_text);
         iv_bing_pic = findViewById(R.id.iv_bing_pic);
+        swipe_refresh = findViewById(R.id.swipe_refresh);
+        swipe_refresh.setColorSchemeResources(R.color.colorPrimary);
+        drawer_layout = findViewById(R.id.drawer_layout);
+        nav_button = findViewById(R.id.nav_button);
     }
 
     private void showWeatherInfo(Weather weather) {

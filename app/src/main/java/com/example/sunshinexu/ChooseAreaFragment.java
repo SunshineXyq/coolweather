@@ -57,6 +57,7 @@ public class ChooseAreaFragment extends Fragment {
     private Province selectedProvince;
     private City selectedCity;
     private List<Country> countryList;
+    private String weatherId;
 
 
     @Nullable
@@ -84,11 +85,18 @@ public class ChooseAreaFragment extends Fragment {
                     selectedCity = cityList.get(position);
                     queryCountry();
                 } else if (currentLevel == LEVEL_COUNTRY) {
-                    String weatherId = countryList.get(position).getWeatherId();
-                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
-                    intent.putExtra("weatherId",weatherId);
-                    startActivity(intent);
-                    getActivity().finish();
+                    weatherId = countryList.get(position).getWeatherId();
+                    if (getActivity() instanceof MainActivity) {
+                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                        intent.putExtra("weatherId",weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
+                    } else if (getActivity() instanceof WeatherActivity) {
+                        WeatherActivity weatherActivity = (WeatherActivity)getActivity();
+                        weatherActivity.drawer_layout.closeDrawers();  //关闭菜单
+                        weatherActivity.swipe_refresh.setRefreshing(true);
+                        weatherActivity.requestWeather(weatherId);
+                    }
                 }
             }
         });
